@@ -35,6 +35,40 @@
 }
 
 
+/* Category Section Styles for All Page */
+.category-section {
+  margin-bottom: 3.5rem;
+}
+
+.category-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.category-view-all {
+  grid-column: 1 / -1;
+  margin-top: 1rem;
+  text-align: right;
+}
+
+.view-all-link {
+  display: inline-block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #3d174f;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.view-all-link:hover {
+  color: #7c3aed;
+  text-decoration: underline;
+}
+
 /* RecipeKit Blog Index Card Styles */
 .main-blog-recipekit-grid {
   display: grid;
