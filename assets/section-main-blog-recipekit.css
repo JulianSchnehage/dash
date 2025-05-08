@@ -1,3 +1,39 @@
+/* Tag Sections Styling */
+.tag-section {
+  margin-bottom: 3rem;
+}
+
+.tag-section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #3d174f;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.view-all-link-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin: 1rem 0 2rem 0;
+}
+
+.view-all-link {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #3d174f;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: #f5f5f8;
+  transition: background 0.2s, color 0.2s;
+}
+
+.view-all-link:hover {
+  background: #e5d9ee;
+  color: #2a1040;
+}
+
 /* Responsive Blog Filter Display */
 .blog-filter-list { display: block; }
 .blog-filter-dropdown { display: none; }
@@ -34,40 +70,6 @@
   }
 }
 
-
-/* Category Section Styles for All Page */
-.category-section {
-  margin-bottom: 3.5rem;
-}
-
-.category-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #222;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid #f0f0f0;
-}
-
-.category-view-all {
-  grid-column: 1 / -1;
-  margin-top: 1rem;
-  text-align: right;
-}
-
-.view-all-link {
-  display: inline-block;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #3d174f;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.view-all-link:hover {
-  color: #7c3aed;
-  text-decoration: underline;
-}
 
 /* RecipeKit Blog Index Card Styles */
 .main-blog-recipekit-grid {
