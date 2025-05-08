@@ -17,9 +17,32 @@
   }
 {%- endstyle -%}
 
-{%- paginate blog.articles by 44 -%}
+{{ 'component-article-card.css' | asset_url | stylesheet_tag }}
+{{ 'component-card.css' | asset_url | stylesheet_tag }}
+{{ 'section-main-blog.css' | asset_url | stylesheet_tag }}
+{{ 'section-main-blog-recipekit.css' | asset_url | stylesheet_tag }}
 
-  <div class="main-blog page-width section-{{ section.id }}-padding">
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+{%- endstyle -%}
+
+{% assign is_tag_page = false %}
+{% if current_tags.size > 0 %}
+  {% assign is_tag_page = true %}
+  {% paginate blog.articles by 44 %}
+{% endif %}
+
+<div class="main-blog page-width section-{{ section.id }}-padding">
     {%- if request.path contains '/blogs/recipes' -%}
 
     {% else %}
@@ -128,8 +151,8 @@
       {%- endif -%}
     {%- endfor -%}
 
-    {%- if current_tags.size > 0 -%}
-      <!-- FILTERED TAG VIEW - Show all articles with selected tag -->
+    {%- if is_tag_page -%}
+      <!-- FILTERED TAG VIEW - Show all articles with selected tag (with pagination) -->
       <div class="main-blog-recipekit-grid">
         {%- for article in blog.articles -%}
           {%- assign rk_resource_id = article.id | downcase -%}
@@ -179,9 +202,13 @@
           </div>
         {%- endfor -%}
       </div>
+      
+      {%- if paginate.pages > 1 -%}
+        {%- render 'pagination', paginate: paginate -%}
+      {%- endif -%}
+      
     {%- else -%}
       <!-- ALL VIEW (CATEGORIES) - Each tag shows up to 3 articles -->
-
       {%- for block in section.blocks -%}
         {%- assign tag = block.settings.tag -%}
         {%- if tag != blank -%}
@@ -247,11 +274,11 @@
         {%- endif -%}
       {%- endfor -%}
 
-    {%- if paginate.pages > 1 -%}
-      {%- render 'pagination', paginate: paginate -%}
-    {%- endif -%}
   </div>
-{%- endpaginate -%}
+
+{% if is_tag_page %}
+  {%- endpaginate -%}
+{% endif %}
 
 <style>
 .blog-banner {
