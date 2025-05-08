@@ -12,6 +12,13 @@
     "main": {
       "type": "main-all-recipes",
       "blocks": {
+        "tag_mqjUaE": {
+          "type": "tag",
+          "settings": {
+            "tag": "Flex Press Grill",
+            "banner_color": ""
+          }
+        },
         "tag_r76Hng": {
           "type": "tag",
           "settings": {
@@ -28,6 +35,7 @@
         }
       },
       "block_order": [
+        "tag_mqjUaE",
         "tag_r76Hng",
         "tag_g3dwzh"
       ],
