@@ -36,8 +36,8 @@ Tags in blocks:
 {% for block in section.blocks %}
   Block tag: {{ block.settings.tag }}
 {% endfor %}
-First 5 recipe articles and their tags:
-{% for article in recipes limit:5 %}
+First 15 recipe articles and their tags:
+{% for article in recipes limit:15 %}
   {{ article.title }} - {{ article.tags | join: ', ' }}
 {% endfor %}
 -->
