@@ -30,6 +30,18 @@
 
   {%- assign recipes = blogs['recipes'].articles -%}
 
+<!--
+Recipes count: {{ recipes.size }}
+Tags in blocks:
+{% for block in section.blocks %}
+  Block tag: {{ block.settings.tag }}
+{% endfor %}
+First 5 recipe articles and their tags:
+{% for article in recipes limit:5 %}
+  {{ article.title }} - {{ article.tags | join: ', ' }}
+{% endfor %}
+-->
+
   {% for block in section.blocks %}
     {%- assign tag = block.settings.tag -%}
     {%- assign headed = false -%}
