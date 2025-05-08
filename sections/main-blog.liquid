@@ -17,7 +17,9 @@
   }
 {%- endstyle -%}
 
-{%- paginate blog.articles by 44 -%}
+{% if current_tags != blank %}
+  {%- paginate blog.articles by 44 -%}
+{% endif %}
 
   <div class="main-blog page-width section-{{ section.id }}-padding">
     {%- if request.path contains '/blogs/recipes' -%}
@@ -255,11 +257,15 @@
   </div>
 {% endif %}
 
-    {%- if paginate.pages > 1 -%}
-      {%- render 'pagination', paginate: paginate -%}
-    {%- endif -%}
+    {% if current_tags != blank %}
+      {%- if paginate.pages > 1 -%}
+        {%- render 'pagination', paginate: paginate -%}
+      {%- endif -%}
+    {% endif %}
   </div>
-{%- endpaginate -%}
+{% if current_tags != blank %}
+  {%- endpaginate -%}
+{% endif %}
 
 <style>
 .blog-banner {
