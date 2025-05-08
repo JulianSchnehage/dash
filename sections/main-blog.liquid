@@ -251,10 +251,9 @@
       </div>
     {%- endfor -%}
   </div>
-  {% if paginate.pages > 1 %}
+  {% if current_tags != blank and paginate.pages > 1 %}
     {%- render 'pagination', paginate: paginate -%}
   {% endif %}
-  {% endpaginate %}
 {% endif %}
 
 <style>
