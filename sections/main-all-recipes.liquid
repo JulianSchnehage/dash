@@ -48,8 +48,10 @@ First 15 recipe articles and their tags:
     <div class="category-group-wrapper" style="margin-bottom:3rem;">
       <h2 class="category-heading" style="margin:2.5rem 0 1.2rem 0;">{{ tag }}</h2>
       <div class="main-blog-recipekit-grid">
-        {%- assign tag_articles = recipes | where: "tags", tag | slice: 0, 3 -%}
-        {% for article in tag_articles %}
+        {%- assign shown_count = 0 -%}
+        {% for article in recipes %}
+          {% if article.tags contains tag %}
+            {% if shown_count < 3 %}
           {%- assign rk_resource_id = article.id | downcase -%}
           {%- assign rk_mf = article.metafields.recipekit[rk_resource_id] -%}
           <div class="recipekit-card-outer">
@@ -98,7 +100,13 @@ First 15 recipe articles and their tags:
               </a>
             </div>
           </div>
-        {% endfor %}
+            {% assign shown_count = shown_count | plus: 1 %}
+          {% endif %}
+          {% if shown_count == 3 %}
+            {% break %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
       </div>
     </div>
   {% endfor %}
