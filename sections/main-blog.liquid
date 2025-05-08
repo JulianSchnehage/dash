@@ -17,103 +17,96 @@
   }
 {%- endstyle -%}
 
-{{ 'component-article-card.css' | asset_url | stylesheet_tag }}
-{{ 'component-card.css' | asset_url | stylesheet_tag }}
-{{ 'section-main-blog.css' | asset_url | stylesheet_tag }}
-{{ 'section-main-blog-recipekit.css' | asset_url | stylesheet_tag }}
+{% comment %}
+  This template has two distinct views:
+  1. The "All" view: Shows the first 3 articles from each tag category
+  2. Filtered tag view: Shows all articles with the selected tag (with pagination)
+{% endcomment %}
 
-{%- style -%}
-  .section-{{ section.id }}-padding {
-    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
-    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
-  }
-
-  @media screen and (min-width: 750px) {
-    .section-{{ section.id }}-padding {
-      padding-top: {{ section.settings.padding_top }}px;
-      padding-bottom: {{ section.settings.padding_bottom }}px;
-    }
-  }
-{%- endstyle -%}
-
-{% assign is_tag_page = false %}
+{% comment %} Determine which view to show based on URL parameters {% endcomment %}
+{% assign is_all_view = true %}
 {% if current_tags.size > 0 %}
-  {% assign is_tag_page = true %}
+  {% assign is_all_view = false %}
   {% paginate blog.articles by 44 %}
 {% endif %}
 
 <div class="main-blog page-width section-{{ section.id }}-padding">
-    {%- if request.path contains '/blogs/recipes' -%}
-
+  {% comment %} Page Header/Banner Section {% endcomment %}
+  {% if request.path contains '/blogs/recipes' %}
+    {% comment %} Set up banner image and text {% endcomment %}
+    {%- assign active_block = null -%}
+    {% for block in section.blocks %}
+      {% if current_tags contains block.settings.tag %}
+        {% assign active_block = block %}
+      {% endif %}
+    {% endfor %}
+    
+    {% assign banner_image = section.settings.default_banner_image %}
+    {% assign banner_headline = section.settings.default_banner_headline %}
+    
+    {% if active_block != null and active_block.settings.banner_image != blank %}
+      {% assign display_image = active_block.settings.banner_image %}
     {% else %}
+      {% assign display_image = banner_image %}
+    {% endif %}
+    
+    {% if display_image == blank %}
+      {% assign display_image = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80' %}
+    {% endif %}
+    
+    {% if active_block != null and active_block.settings.headline != blank %}
+      {% assign display_headline = active_block.settings.headline %}
+    {% else %}
+      {% assign display_headline = banner_headline %}
+    {% endif %}
+
+    <div class="blog-banner">
+      <div class="blog-banner-image">
+        <img src="{{ display_image | img_url: '2000x' }}" alt="{{ display_headline }}" height="180">
+        <div class="blog-banner-overlay">&nbsp;</div>
+        <div class="blog-banner-text">
+          <h1 class="blog-banner-headline">{{ display_headline }}</h1>
+          {% if section.settings.secondary_banner_headline != blank %}
+            <div class="blog-banner-subheadline">{{ section.settings.secondary_banner_headline }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% else %}
     <h1 class="title--primary{% if settings.animations_reveal_on_scroll %} scroll-trigger animate--fade-in{% endif %}">
       {{ blog.title | escape }}
     </h1>
-{% endif %}
-    {%- if request.path contains '/blogs/recipes' -%}
-      {%- assign active_block = null -%}
-      {% for block in section.blocks %}
-        {% if current_tags contains block.settings.tag %}
-          {% assign active_block = block %}
-        {% endif %}
-      {% endfor %}
-      {% assign banner_image = section.settings.default_banner_image %}
-      {% assign banner_headline = section.settings.default_banner_headline %}
-      {% if active_block != null and active_block.settings.banner_image != blank %}
-        {% assign display_image = active_block.settings.banner_image %}
-      {% else %}
-        {% assign display_image = banner_image %}
-      {% endif %}
-      {% if display_image == blank %}
-        {% assign display_image = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80' %}
-      {% endif %}
-      {%- comment -%}
-        If Default Banner Headline is blank, do not fall back to a hardcoded string.
-        Only use the Default Banner Headline (even if blank) or the selected block's headline if a tag is active.
-      {%- endcomment -%}
-      {% if active_block != null and active_block.settings.headline != blank %}
-        {% assign display_headline = active_block.settings.headline %}
-      {% else %}
-        {% assign display_headline = banner_headline %}
-      {% endif %}
+  {% endif %}
 
-      <div class="blog-banner">
-        <div class="blog-banner-image">
-          <img src="{{ display_image | img_url: '2000x' }}" alt="{{ display_headline }}" height="180">
-          <div class="blog-banner-overlay">&nbsp;</div>
-          <div class="blog-banner-text">
-            <h1 class="blog-banner-headline">{{ display_headline }}</h1>
-            {% if section.settings.secondary_banner_headline != blank %}
-              <div class="blog-banner-subheadline">{{ section.settings.secondary_banner_headline }}</div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
-      <div class="blog-filter-wrapper">
-        <!-- Desktop/Tablet Filter List -->
-        <div class="blog-filter blog-filter-list">
-          {% assign all_active = false %}
-          {% if current_tags == blank or current_tags.size == 0 %}
-            {% assign all_active = true %}
-          {% endif %}
-          <a
-            href="/blogs/recipes"
-            class="blog-filter__item{% if all_active %} blog-filter__item--active{% endif %}"
-            role="tab"
-            aria-selected="{{ all_active }}"
-            aria-label="Show all recipes"
-            tabindex="0"
-          >
-            All
-          </a>
-          {% for block in section.blocks %}
-            {% assign tag = block.settings.tag %}
-            {% assign banner_image = block.settings.banner_image %}
-            {% assign banner_color = block.settings.banner_color %}
+  {% comment %} Filter Navigation Section {% endcomment %}
+  {% if request.path contains '/blogs/recipes' %}
+    <div class="blog-filter-wrapper">
+      {% comment %} Desktop/Tablet Filter List {% endcomment %}
+      <div class="blog-filter blog-filter-list">
+        {% assign all_active = false %}
+        {% if is_all_view %}
+          {% assign all_active = true %}
+        {% endif %}
+        
+        <a
+          href="/blogs/recipes"
+          class="blog-filter__item{% if all_active %} blog-filter__item--active{% endif %}"
+          role="tab"
+          aria-selected="{{ all_active }}"
+          aria-label="Show all recipes"
+          tabindex="0"
+        >
+          All
+        </a>
+        
+        {% for block in section.blocks %}
+          {% assign tag = block.settings.tag %}
+          {% if tag != blank %}
             {% assign is_active = false %}
             {% if current_tags contains tag %}
               {% assign is_active = true %}
             {% endif %}
+            
             <a
               href="{% if is_active %}/blogs/recipes{% else %}/blogs/recipes/tagged/{{ tag | handle }}{% endif %}"
               class="blog-filter__item{% if is_active %} blog-filter__item--active{% endif %}"
@@ -124,35 +117,109 @@
             >
               {{ tag }}
             </a>
-          {% endfor %}
-        </div>
-        <!-- Mobile Dropdown Filter -->
-        <div class="blog-filter-dropdown">
-          <select onchange="if(this.value) window.location.href=this.value;">
-            <option value="">Select Category</option>
-            <option value="/blogs/recipes" {% if all_active %}selected{% endif %}>All</option>
-            {% for block in section.blocks %}
-              {% assign tag = block.settings.tag %}
+          {% endif %}
+        {% endfor %}
+      </div>
+      
+      {% comment %} Mobile Dropdown Filter {% endcomment %}
+      <div class="blog-filter-dropdown">
+        <select onchange="if(this.value) window.location.href=this.value;">
+          <option value="">Select Category</option>
+          <option value="/blogs/recipes" {% if all_active %}selected{% endif %}>All</option>
+          {% for block in section.blocks %}
+            {% assign tag = block.settings.tag %}
+            {% if tag != blank %}
               {% assign is_active = false %}
               {% if current_tags contains tag %}
                 {% assign is_active = true %}
               {% endif %}
               <option value="{% if is_active %}/blogs/recipes{% else %}/blogs/recipes/tagged/{{ tag | handle }}{% endif %}" {% if is_active %}selected{% endif %}>{{ tag }}</option>
-            {% endfor %}
-          </select>
-        </div>
+            {% endif %}
+          {% endfor %}
+        </select>
       </div>
-    {%- endif -%}
+    </div>
 
+    {% comment %} Set up color mapping for category badges {% endcomment %}
     {%- assign tag_color_map = '' -%}
     {%- for block in section.blocks -%}
       {%- if block.settings.tag != blank and block.settings.banner_color != blank -%}
         {%- assign tag_color_map = tag_color_map | append: block.settings.tag | append: ':' | append: block.settings.banner_color | append: ',' -%}
       {%- endif -%}
     {%- endfor -%}
-
-    {%- if is_tag_page -%}
-      <!-- FILTERED TAG VIEW - Show all articles with selected tag (with pagination) -->
+    
+    {% comment %} MAIN CONTENT DISPLAY - Two different views: All view or Tag-filtered view {% endcomment %}
+    {% if is_all_view %}
+      {% comment %} ALL VIEW - Show 3 posts from each tag category {% endcomment %}
+      {% for block in section.blocks %}
+        {% assign tag = block.settings.tag %}
+        {% if tag != blank %}
+          {% comment %} Find all articles with this tag {% endcomment %}
+          {% assign tagged_articles = blog.articles | where: 'tags', tag %}
+          {% if tagged_articles.size > 0 %}
+            <div class="tag-section">
+              <h2 class="tag-section-title">{{ tag }}</h2>
+              <div class="main-blog-recipekit-grid">
+                {% for article in tagged_articles limit: 3 %}
+                  {%- assign rk_resource_id = article.id | downcase -%}
+                  {%- assign rk_mf = article.metafields.recipekit[rk_resource_id] -%}
+                  <div class="recipekit-card-outer">
+                    <a href="{{ article.url }}" class="recipekit-card-link" aria-label="{{ article.title | escape }}">
+                      <div class="recipekit-card">
+                        <div class="recipekit-card-image-wrapper">
+                          {%- if rk_mf and rk_mf.recipe_image != blank -%}
+                            {%- assign image_url = rk_mf.recipe_image -%}
+                            {%- if image_url contains 'cloudinary.com' -%}
+                              {%- assign rk_last_url = image_url | split: 'upload/' -%}
+                              {%- assign card_image = rk_last_url[1] | prepend: 'https://res.cloudinary.com/hsxfx8igq/image/upload/t_1x1_recipe_image,f_auto/' -%}
+                            {%- elsif image_url contains 'backblazeb2.com' -%}
+                              {%- assign rk_last_url = image_url | split: 'backblazeb2.com/file/recipekit-bucket/' -%}
+                              {%- assign card_image = 'https://images.getrecipekit.com/' | append: rk_last_url[1] | append: '?aspect_ratio=1:1&quality=90&' -%}
+                            {%- elsif image_url contains 'cdn.shopify.com' -%}
+                              {%- assign card_image = image_url | append: '&width=1000&height=1000' -%}
+                            {%- else -%}
+                              {%- assign card_image = image_url -%}
+                            {%- endif -%}
+                            <img class="recipekit-card-image" src="{{ card_image }}" alt="{{ article.title | escape }}" loading="lazy">
+                          {%- elsif article.image -%}
+                            <img class="recipekit-card-image" src="{{ article.image | img_url: '1000x1000', scale: 2 }}" alt="{{ article.title | escape }}" loading="lazy">
+                          {%- endif -%}
+                          {%- if rk_mf and rk_mf.prep_time != blank -%}
+                            <span class="recipekit-prep-time">{{ rk_mf.prep_time }}</span>
+                          {%- endif -%}
+                        </div>
+                      </div>
+                    </a>
+                    <div class="recipekit-card-meta">
+                      {%- if rk_mf and rk_mf.recipe_category != blank -%}
+                        {%- assign badge_color = '' -%}
+                        {%- assign tag_pairs = tag_color_map | split: ',' -%}
+                        {%- for pair in tag_pairs -%}
+                          {%- assign pair_tag = pair | split: ':' | first -%}
+                          {%- assign color = pair | split: ':' | last -%}
+                          {%- if rk_mf.recipe_category == pair_tag -%}
+                            {%- assign badge_color = color -%}
+                          {%- endif -%}
+                        {%- endfor -%}
+                        <span class="recipekit-category-badge"{% if badge_color != '' %} style="background: {{ badge_color }}"{% endif %}>{{ rk_mf.recipe_category }}</span>
+                      {%- endif -%}
+                      <a href="{{ article.url }}" class="recipekit-card-title-link"><div class="recipekit-card-title">{{ article.title }}</div></a>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+              
+              {% if tagged_articles.size > 3 %}
+                <div class="view-all-link-wrapper">
+                  <a href="/blogs/recipes/tagged/{{ tag | handle }}" class="view-all-link">View all {{ tag }} ({{ tagged_articles.size }})</a>
+                </div>
+              {% endif %}
+            </div>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      {% comment %} TAG-FILTERED VIEW - Show all articles with the selected tag {% endcomment %}
       <div class="main-blog-recipekit-grid">
         {%- for article in blog.articles -%}
           {%- assign rk_resource_id = article.id | downcase -%}
@@ -203,80 +270,16 @@
         {%- endfor -%}
       </div>
       
+      {% comment %} Pagination for tag-filtered view {% endcomment %}
       {%- if paginate.pages > 1 -%}
         {%- render 'pagination', paginate: paginate -%}
       {%- endif -%}
-      
-    {%- else -%}
-      <!-- ALL VIEW (CATEGORIES) - Each tag shows up to 3 articles -->
-      {%- for block in section.blocks -%}
-        {%- assign tag = block.settings.tag -%}
-        {%- if tag != blank -%}
-          <div class="tag-section">
-            <h2 class="tag-section-title">{{ tag }}</h2>
-            {%- assign tagged_articles = blog.articles | where: 'tags', tag -%}
-            <div class="main-blog-recipekit-grid">
-              {%- for article in tagged_articles limit:3 -%}
-                {%- assign rk_resource_id = article.id | downcase -%}
-                {%- assign rk_mf = article.metafields.recipekit[rk_resource_id] -%}
-                <div class="recipekit-card-outer">
-                  <a href="{{ article.url }}" class="recipekit-card-link" aria-label="{{ article.title | escape }}">
-                    <div class="recipekit-card">
-                      <div class="recipekit-card-image-wrapper">
-                        {%- if rk_mf and rk_mf.recipe_image != blank -%}
-                          {%- assign image_url = rk_mf.recipe_image -%}
-                          {%- if image_url contains 'cloudinary.com' -%}
-                            {%- assign rk_last_url = image_url | split: 'upload/' -%}
-                            {%- assign card_image = rk_last_url[1] | prepend: 'https://res.cloudinary.com/hsxfx8igq/image/upload/t_1x1_recipe_image,f_auto/' -%}
-                          {%- elsif image_url contains 'backblazeb2.com' -%}
-                            {%- assign rk_last_url = image_url | split: 'backblazeb2.com/file/recipekit-bucket/' -%}
-                            {%- assign card_image = 'https://images.getrecipekit.com/' | append: rk_last_url[1] | append: '?aspect_ratio=1:1&quality=90&' -%}
-                          {%- elsif image_url contains 'cdn.shopify.com' -%}
-                            {%- assign card_image = image_url | append: '&width=1000&height=1000' -%}
-                          {%- else -%}
-                            {%- assign card_image = image_url -%}
-                          {%- endif -%}
-                          <img class="recipekit-card-image" src="{{ card_image }}" alt="{{ article.title | escape }}" loading="lazy">
-                        {%- elsif article.image -%}
-                          <img class="recipekit-card-image" src="{{ article.image | img_url: '1000x1000', scale: 2 }}" alt="{{ article.title | escape }}" loading="lazy">
-                        {%- endif -%}
-                        {%- if rk_mf and rk_mf.prep_time != blank -%}
-                          <span class="recipekit-prep-time">{{ rk_mf.prep_time }}</span>
-                        {%- endif -%}
-                      </div>
-                    </div>
-                  </a>
-                  <div class="recipekit-card-meta">
-                    {%- if rk_mf and rk_mf.recipe_category != blank -%}
-                      {%- assign badge_color = '' -%}
-                      {%- assign tag_pairs = tag_color_map | split: ',' -%}
-                      {%- for pair in tag_pairs -%}
-                        {%- assign current_tag = pair | split: ':' | first -%}
-                        {%- assign color = pair | split: ':' | last -%}
-                        {%- if rk_mf.recipe_category == current_tag -%}
-                          {%- assign badge_color = color -%}
-                        {%- endif -%}
-                      {%- endfor -%}
-                      <span class="recipekit-category-badge"{% if badge_color != '' %} style="background: {{ badge_color }}"{% endif %}>{{ rk_mf.recipe_category }}</span>
-                    {%- endif -%}
-                    <a href="{{ article.url }}" class="recipekit-card-title-link"><div class="recipekit-card-title">{{ article.title }}</div></a>
-                  </div>
-                </div>
-              {%- endfor -%}
-            </div>
-            
-            {% if tagged_articles.size > 3 %}
-              <div class="view-all-link-wrapper">
-                <a href="/blogs/recipes/tagged/{{ tag | handle }}" class="view-all-link">View all {{ tag }} ({{ tagged_articles.size }})</a>
-              </div>
-            {% endif %}
-          </div>
-        {%- endif -%}
-      {%- endfor -%}
+    {% endif %}
+  {% endif %}
+</div>
 
-  </div>
-
-{% if is_tag_page %}
+{% comment %} Close pagination if in tag-filtered view {% endcomment %}
+{% if current_tags.size > 0 %}
   {%- endpaginate -%}
 {% endif %}
 
@@ -338,145 +341,7 @@
     margin-bottom: 0.6em;
   }
 }
-
-.blog-banner-image {
-  position: relative;
-  width: 100%;
-  height: 180px;
-  overflow: hidden;
-}
-.blog-banner-image img {
-  width: 100%;
-  height: 180px;
-  object-fit: cover;
-  display: block;
-}
-.blog-banner-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(180deg, rgba(0,0,0,0.38) 0%, rgba(0,0,0,0.38) 100%);
-  pointer-events: none;
-  z-index: 1;
-}
-.blog-banner-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  text-align: center;
-  z-index: 2;
-  color: #fff;
-  padding: 0 32px;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.blog-filter-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 32px;
-}
-
-.blog-filter {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 24px;
-  align-items: center;
-  justify-content: center;
-}
-
-.blog-filter__item {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 18px;
-  border-radius: 20px;
-  background: #f5f5f8;
-  color: #2a1040;
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 15px;
-  transition: background 0.15s, color 0.15s, outline 0.15s;
-  border: 1.5px solid transparent;
-  cursor: pointer;
-  outline: none;
-}
-
-.blog-filter__item:focus-visible {
-  outline: 3px solid #7c3aed;
-  outline-offset: 2px;
-  z-index: 2;
-}
-
-.blog-filter__item--active {
-  background: #3d174f;
-  color: #fff;
-  border-color: #3d174f;
-}
-
-.blog-filter__item--active:focus-visible {
-  outline: 3px solid #fff04d;
-  outline-offset: 2px;
-  z-index: 2;
-}
-
-
-.blog-filter__item:not(.blog-filter__item--active):hover {
-  background: #e5d9ee;
-  color: #2a1040;
-  border-color: #cbb4df;
-}
-
-.blog-filter__item span {
-  margin-left: 8px;
-  font-size: 13px;
-  color: #888;
-}
-
-.blog-filter__item--active {
-  background: #3d174f;
-  color: #fff;
-  border-color: #3d174f;
-}
-
-.blog-filter__item--active span {
-  color: #fff;
-}
-
-.blog-filter__banner {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  margin-bottom: 28px;
-  padding: 18px 28px;
-  border-radius: 12px;
-  background: #f5f5f8;
-}
-
-.blog-filter__banner img {
-  width: 60px;
-  height: 60px;
-  object-fit: cover;
-  border-radius: 8px;
-}
-
-.blog-filter__banner h2 {
-  margin: 0;
-  font-size: 1.5em;
-  font-weight: 700;
-  color: #3d174f;
-}
 </style>
-
-
 
 {% schema %}
 {
@@ -493,85 +358,17 @@
       "type": "text",
       "id": "default_banner_headline",
       "label": "Default Banner Headline",
-      "default": "Coffee Drinks with Smooth, Rich and Complex Flavors"
+      "default": "Delicious Recipes"
     },
     {
       "type": "text",
       "id": "secondary_banner_headline",
       "label": "Secondary Banner Headline",
-      "default": "from the Breville Test Kitchen"
+      "default": "Discover a world of flavors"
     },
     {
       "type": "header",
       "content": "t:sections.main-blog.settings.header.content"
-    },
-    {
-      "type": "select",
-      "id": "layout",
-      "options": [
-        {
-          "value": "grid",
-          "label": "t:sections.main-blog.settings.layout.options__1.label"
-        },
-        {
-          "value": "collage",
-          "label": "t:sections.main-blog.settings.layout.options__2.label"
-        }
-      ],
-      "default": "collage",
-      "label": "t:sections.main-blog.settings.layout.label",
-      "info": "t:sections.main-blog.settings.layout.info"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_image",
-      "default": true,
-      "label": "t:sections.main-blog.settings.show_image.label"
-    },
-    {
-      "type": "select",
-      "id": "image_height",
-      "options": [
-        {
-          "value": "adapt",
-          "label": "t:sections.main-blog.settings.image_height.options__1.label"
-        },
-        {
-          "value": "small",
-          "label": "t:sections.main-blog.settings.image_height.options__2.label"
-        },
-        {
-          "value": "medium",
-          "label": "t:sections.main-blog.settings.image_height.options__3.label"
-        },
-        {
-          "value": "large",
-          "label": "t:sections.main-blog.settings.image_height.options__4.label"
-        }
-      ],
-      "default": "medium",
-      "label": "t:sections.main-blog.settings.image_height.label",
-      "info": "t:sections.main-blog.settings.image_height.info"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_date",
-      "default": true,
-      "label": "t:sections.main-blog.settings.show_date.label"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_author",
-      "default": false,
-      "label": "t:sections.main-blog.settings.show_author.label"
-    },
-    {
-      "type": "paragraph",
-      "content": "t:sections.main-blog.settings.paragraph.content"
-    },
-    {
-      "type": "header",
-      "content": "t:sections.all.padding.section_padding_heading"
     },
     {
       "type": "range",
@@ -592,18 +389,24 @@
       "unit": "px",
       "label": "t:sections.all.padding.padding_bottom",
       "default": 36
-    },
-
+    }
   ],
   "blocks": [
     {
-      "type": "filter",
-      "name": "Filter Tag",
+      "type": "recipe_category",
+      "name": "Recipe Category",
       "settings": [
         {
           "type": "text",
           "id": "tag",
-          "label": "Tag"
+          "label": "Tag",
+          "default": "Dessert"
+        },
+        {
+          "type": "color",
+          "id": "banner_color",
+          "label": "Banner Color",
+          "default": "#8a0080"
         },
         {
           "type": "image_picker",
@@ -611,27 +414,12 @@
           "label": "Banner Image"
         },
         {
-          "type": "color",
-          "id": "banner_color",
-          "label": "Banner Color"
-        },
-        {
           "type": "text",
           "id": "headline",
-          "label": "Headline"
+          "label": "Banner Headline"
         }
       ]
-    }
-  ],
-  "max_blocks": 20,
-  "presets": [
-    {
-      "name": "Main Blog"
     }
   ]
 }
 {% endschema %}
-
-<!-- blog-filter-start -->
-{% render "blogfilter" %}
-<!-- blog-filter-end -->
