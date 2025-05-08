@@ -203,6 +203,23 @@
   {% endfor %}
 {% endfor %}
   </div>
+  {%- if paginate.pages > 1 -%}
+    <div class="pagination">
+      {%- if paginate.previous -%}
+        <a href="{{ paginate.previous.url }}">Previous</a>
+      {%- endif -%}
+      {% for part in paginate.parts %}
+        {% if part.is_link %}
+          <a href="{{ part.url }}">{{ part.title }}</a>
+        {% else %}
+          <span class="current">{{ part.title }}</span>
+        {% endif %}
+      {% endfor %}
+      {%- if paginate.next -%}
+        <a href="{{ paginate.next.url }}">Next</a>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
 {% else %}
   <div class="main-blog-recipekit-grid">
     {%- for article in blog.articles -%}
@@ -255,10 +272,24 @@
   </div>
 {% endif %}
 
-    {%- if paginate.pages > 1 -%}
-      {%- render 'pagination', paginate: paginate -%}
-    {%- endif -%}
-  </div>
+  {%- if paginate.pages > 1 -%}
+    <div class="pagination">
+      {%- if paginate.previous -%}
+        <a href="{{ paginate.previous.url }}">Previous</a>
+      {%- endif -%}
+      {% for part in paginate.parts %}
+        {% if part.is_link %}
+          <a href="{{ part.url }}">{{ part.title }}</a>
+        {% else %}
+          <span class="current">{{ part.title }}</span>
+        {% endif %}
+      {% endfor %}
+      {%- if paginate.next -%}
+        <a href="{{ paginate.next.url }}">Next</a>
+      {%- endif -%}
+    </div>
+  {%- endif -%}
+</div>
 {%- endpaginate -%}
 
 <style>
