@@ -49,6 +49,14 @@
     "main": {
       "type": "main-blog",
       "blocks": {
+        "filter_rBphcR": {
+          "type": "filter",
+          "settings": {
+            "tag": "Flex Press Grill",
+            "banner_color": "",
+            "headline": ""
+          }
+        },
         "filter_8R4UTe": {
           "type": "filter",
           "settings": {
@@ -76,6 +84,7 @@
         }
       },
       "block_order": [
+        "filter_rBphcR",
         "filter_8R4UTe",
         "filter_FyFKkd",
         "filter_bFmrQX"
